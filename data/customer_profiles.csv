@@ -1,0 +1,11 @@
+customer_id,company_name,name,domain,email,phone,thread_id,request_date,request_summary
+CUST-001,ZBC,Vijay,zbc.com,vijay@zbc.com,,thread_placeholder,2024-06-12,Appointment request for platform modernization discussion next Wednesday afternoon
+CUST-002,ZBC1,Vijay1,ZBC1.com,vijay@ZBC1.com,,thread_placeholder,Next week Wednesday 2nd half,Appointment request with XIBIX specialist to discuss platform modernization
+CUST-003,Core Robotics,Yogesh Rajesh,core-robotics.com,yogesh.rajesh@core-robotics.com,,thread_2025-09-19_083544,2025-09-19,"Real-time, large dataset cloud architecture for robotics operations improvement"
+CUST-004,Core Robotics,Yogesh Rajesh,core.robotics.com,yogesh.rajesh@core.robotics.com,,thread_2025-09-19_09-00-32,2025-09-19,"Consultation for migration from on-premise to cloud, real-time data processing, and cost optimization for robotics company"
+CUST-005,Harman Becker,Boris Liu,automotive,b.liu@tum.de,,f1b6b4b0-6b6a-4b3a-8b3a-6f6a4b3a8b3a,2025-09-19,"Migration from Microsoft Teams to Slack Premium, integrate Google Drive, migrate email and calendar from Microsoft 365 to Google Workspace for 300 users"
+CUST-006,yyyz,XYZ,Health care,xyx@yyyz.com,,b1b6b6a0-3b3a-4a2a-8b3a-0b6a0f3a2b1c,2025-09-19,Customer requested appointment for optimization discussion
+CUST-007,YZZ,XYZ,yyzz.com,xyz@yyzz.com,,thread_2025-09-19_09-48-20,2025-09-19,Slack and Google Workspace integration consultation
+CUST-008,Rakesh Medical,Rakesh,medical,rakesh_medical2006@gmail.com,,a2b6b6b0-3b6a-4b3a-8b3a-1b2b3b3b3b3b,2025-09-19,Customer in medical sector wants private cloud solution for prescription data with office-only access
+CUST-009,XIBIX Solutions,Fabrizio Palmas,www.fabriziopalmas.com,fadfdas@gmail.com,,a2b3b3a0-3b3a-4b3a-8b3a-3b3a8b3a3b3a,2025-09-19,Customer wants to discuss code migration to the cloud with Regina
+CUST-010,BMW,Frank,bmw.de,frank@bmw.de,,thread_2025_09_19_094820,2025-09-19,Platform modernization and cost optimization for automotive solutions

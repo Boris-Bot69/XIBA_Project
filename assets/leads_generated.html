@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAiCAYAAADCp/A1AAAFB0lEQVRYR62YUW7bRhCGZ1dSIVkByqJ24pc4DNAC7VMpNwXyVukEtU4g5wRWTiD7BJZPYPsEdk5g9a1A2phv6ZsZpw9J7NRs0disJe52ZqtVKWpJrpQKEGBTs7vfzs78M0sGlp/VLx4149GoBxI8/DrAIMSvzwQEksOg7jjPAn8QWk43lxmzsXa/eux+uI7OErb9Ond2gmAQrrqP3Ti+bTIuaAODpaXqTvDrT4HNvLY2VpArrncCApo0KQ44eHfuPzEtsHJ/fZNgueSHb85fbNtCFNkVQqa9KCRsvH/tP8uamDwrRNRjDJq1WrX1f3i1EJK8A0zsa6giSG2nxnGxW5J872O9Wgi5vOb10GhydJxD923g7xUdEf2uvCqjEynhWMewzbi0zdyQeTFpAnC9pnMThvukCosefyHkPdfbEgL6EwCUnjpzHlJmJ6HGMB0pwKN4FIAy9W+iBQjoM47/LwhaCPm5++0GF/FREqjEy603wc8DekZwUfhnN5ZiS9lIOAAOvoSKkiEZDx2O0FyCK3GDiyRUISRBfPg9vJo6StTDi9d+Swn8cHSE3vNBVrYvf3v+Y17MUYyORNQpMdic5+gLIWnRpE5qCPJmDKMeF3D89twukfTYu2uNA8bk97agVpDpDB8f66Bectrp2LTNXto4w/K6xJxW0RxWkMYjR5pkbNrCaTua8/oqPCV5ujj3n+aNt4KkCZbve0cY9Bum2JwXUNuvfPmdB38PT4s2aw2pkuR2dJIGkpw/vQxe/CdRBuJld73Lhfgm/RPKkh8LcPDYm5SIWZu1hqQafn0d9STA5tRkpJu1aiOrRq+669uxwA5phhDCEqs2qk41JPXI82YhJHmByfEirNICOTxR/WTigzoY1JjTSCeAGivErslDgpfa74NfjhPq4WfFZi4kSYVk8gcU4u0adw4JImfhfnIRUxHQsKirqKn+ziQ217xdEvmlWrVtOpFMSDomIUWHsypWl+km1qSbtKCOT9Xe3USnaY8rmxQgPdPtHdbQpqlxNkLqHlKKStNURVQ3Ls0QWBI3yfPY0rmzYZjdMGtb0mSqSIJV2hfBc5+ez0BSFovbUYcWuczJuLx4M8UgHqf/7pXfsJEr6kU5dvg6zieQyntRpFoqBDyu8PKhbiKyJsYO6Qg7pGntNBgjYGAKmzxg8iheWYBiV0ES4M1NdIKaFdyZo9QlqsbM0WqARQAV07giYdlsKMi7a94+BS0ex0Ob40ja6KqRNa6omuStRwkqYuizyUWLVxo6UOcBzZOacdBn3i6L1llBacLiETJapCTjnm1QJyfOk5qkXQn4ziKXMRWXlN3qD0wWzOR20c7SgBTHJqkxzWNT49PjljExZQwHCpJjnGZd+E0LqvsMtllGLcRMxvbLmEjzxue9B94Zw2LC9P3YdLmaV3ookykb/xLhVvIaPJmnoBmZSkjUSgmiQ1rNVEN7FZ6hW/vJepoFmNXVpKVG1X2QnfQ8qhkpeLOhJZG8SCVZSdCkemBJuwj8w3kB6Q0btV3JGj/WOXox4KXno+qTdW3QgJgnfX13mlQcfY+hyz83VJtcqcmQr8QbjJkYpWuDTtZVLCbDaOiVIaZy3MRNd5POmqrdyW5EBz/tWn5SeQK3s30keQiTrpt3W8xtRgD6SgfxNQ6uN6AO6E7Z2Uv3pZmtmvN140FlVP6sPqwHBBPW/vjUFAbhy9NXRdLluk3nY8b/A8JW9YH85ZfTAAAAAElFTkSuQmCC" />
+    <title>Xiba - Leads</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            height: 100vh;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .search-container {
+            padding: 0 24px 16px 24px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 12px;
+        }
+
+        .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .list-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .list-container::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
+        }
+
+        .list-item {
+            margin: 8px 12px;
+            padding: 16px 20px;
+            background: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .list-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: rgba(102, 126, 234, 0.2);
+        }
+
+        .list-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .item-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .item-meta {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .main-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .content-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .content-meta {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .content-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content-body::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .content-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-content {
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 2px 4px 2px 0;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 40vh;
+            }
+
+            .main-content {
+                height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-title">Leads Generated</h1>
+                <p class="sidebar-subtitle">Customer consultation bookings</p>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search leads..." id="searchInput">
+            </div>
+            
+            <div class="list-container" id="listContainer">
+                <!-- List items will be populated here -->
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="content-header" id="contentHeader" style="display: none;">
+                <h1 class="content-title" id="contentTitle"></h1>
+                <p class="content-meta" id="contentMeta"></p>
+            </div>
+            
+            <div class="content-body" id="contentBody">
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h2 class="empty-title">No Item Selected</h2>
+                    <p class="empty-subtitle">Click on an item from the list to view its details</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API configuration
+        const API_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/get_lead_datalist`;
+        
+        // Global variables
+        let data_list = [];
+        let currentData = [];
+        let selectedItemIndex = null;
+        let isLoading = false;
+
+        // Load data from API
+        async function loadDataFromAPI() {
+            try {
+                isLoading = true;
+                showLoadingState();
+                
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const apiData = await response.json();
+                data_list = Array.isArray(apiData) ? apiData : [];
+                currentData = [...data_list];
+                
+                isLoading = false;
+                renderList();
+                
+            } catch (error) {
+                console.error('Error loading data from API:', error);
+                isLoading = false;
+                showErrorState(error.message);
+            }
+        }
+
+        function showLoadingState() {
+            const listContainer = document.getElementById('listContainer');
+            listContainer.innerHTML = `
+                <div class="no-results">
+                    <div style="font-size: 2rem; margin-bottom: 16px;">⏳</div>
+                    <p>Loading appointments...</p>
+                </div>
+            `;
+            
+            // Clear content area
+            document.getElementById('contentHeader').style.display = 'none';
+            document.getElementById('contentBody').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <h2 class="empty-title">Loading Data</h2>
+                    <p class="empty-subtitle">Please wait while we fetch the appointments...</p>
+                </div>
+            `;
+        }
+
+        function showErrorState(errorMessage) {
+            const listContainer = document.getElementById('listContainer');
+            listContainer.innerHTML = `
+                <div class="no-results">
+                    <div style="font-size: 2rem; margin-bottom: 16px; color: #ef4444;">❌</div>
+                    <p style="color: #ef4444; margin-bottom: 12px;">Error loading data</p>
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 16px;">${errorMessage}</p>
+                    <button onclick="loadDataFromAPI()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                        Retry
+                    </button>
+                </div>
+            `;
+            
+            // Clear content area
+            document.getElementById('contentHeader').style.display = 'none';
+            document.getElementById('contentBody').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">❌</div>
+                    <h2 class="empty-title">Failed to Load Data</h2>
+                    <p class="empty-subtitle">Please check your connection and try again</p>
+                </div>
+            `;
+        }
+
+        function renderList(items = currentData) {
+            const listContainer = document.getElementById('listContainer');
+            
+            if (items.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="no-results">
+                        <p>No appointments found</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listContainer.innerHTML = items.map((item, index) => {
+                const isSelected = selectedItemIndex === data_list.indexOf(item);
+                return `
+                    <div class="list-item ${isSelected ? 'active' : ''}" 
+                         onclick="selectItem(${data_list.indexOf(item)})" 
+                         data-index="${data_list.indexOf(item)}">
+                        <div class="item-title">${item.customer_info.company} - ${item.customer_info.topic}</div>
+                        <div class="item-meta">
+                            <span class="badge" ${getSentimentColor(item.customer_sentiment)}>${item.customer_sentiment}</span>
+                            ${item.specialist_info.name} • ${extractDateTime(item.customer_company_name_with_appointment_datetime_with_specialist_name)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getSentimentColor(sentiment) {
+            if (sentiment.toLowerCase().includes('positive')) {
+                return 'style="background: #10b981; color: white;"';
+            } else if (sentiment.toLowerCase().includes('enthusiastic')) {
+                return 'style="background: #f59e0b; color: white;"';
+            } else if (sentiment.toLowerCase().includes('professional')) {
+                return 'style="background: #3b82f6; color: white;"';
+            } else if (sentiment.toLowerCase().includes('neutral')) {
+                return 'style="background: #6b7280; color: white;"';
+            } else if (sentiment.toLowerCase().includes('negative')) {
+                return 'style="background: #ef4444; color: white;"';
+            } else {
+                return 'style="background: #667eea; color: white;"';
+            }
+        }
+
+        function extractDateTime(appointmentString) {
+            // Extract date and time from the appointment string
+            const parts = appointmentString.split(', ');
+            if (parts.length >= 3) {
+                return `${parts[1]}, ${parts[2]}`;
+            }
+            return appointmentString;
+        }
+
+        function selectItem(index) {
+            selectedItemIndex = index;
+            const item = data_list[index];
+            
+            if (!item) return;
+            
+            // Update active state in list
+            document.querySelectorAll('.list-item').forEach(el => {
+                el.classList.toggle('active', parseInt(el.dataset.index) === index);
+            });
+            
+            // Show content header
+            const contentHeader = document.getElementById('contentHeader');
+            const contentTitle = document.getElementById('contentTitle');
+            const contentMeta = document.getElementById('contentMeta');
+            const contentBody = document.getElementById('contentBody');
+            
+            contentHeader.style.display = 'block';
+            contentTitle.textContent = `${item.customer_info.company} - ${item.customer_info.topic}`;
+            contentMeta.innerHTML = `
+                <span class="badge" ${getSentimentColor(item.customer_sentiment)}>${item.customer_sentiment}</span>
+                <BR><BR>Customer: ${item.customer_info.name} • Specialist: ${item.specialist_info.name}
+            `;
+            
+            // Render content body
+            contentBody.innerHTML = `
+                <div class="content-section">
+                    <h3 class="section-title">Summary</h3>
+                    <div class="section-content">
+                        ${item.summary}
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <h3 class="section-title">Customer Information</h3>
+                    <div class="section-content">
+                        <p><strong>Name:</strong> ${item.customer_info.name}</p>
+                        <p><strong>Company:</strong> ${item.customer_info.company}</p>
+                        <p><strong>Domain:</strong> ${item.customer_info.domain}</p>
+                        <p><strong>Email:</strong> <a href="mailto:${item.customer_info.email}" style="color: #667eea; text-decoration: none;">${item.customer_info.email}</a></p>
+                        <p><strong>Topic of Interest:</strong> ${item.customer_info.topic}</p>
+                        <p><strong>Sentiment:</strong> <span class="badge" ${getSentimentColor(item.customer_sentiment)}>${item.customer_sentiment}</span></p>
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <h3 class="section-title">Assigned Specialist</h3>
+                    <div class="section-content">
+                        <p><strong>Name:</strong> ${item.specialist_info.name}</p>
+                        <p><strong>Designation:</strong> ${item.specialist_info.designation}</p>
+                        <p><strong>Expertise:</strong></p>
+                        <div style="margin-top: 8px;">
+                            ${Array.isArray(item.specialist_info.expertise) ? item.specialist_info.expertise.map(skill => `<span class="badge">${skill}</span>`).join('') : item.specialist_info.expertise.split(',').map(skill => `<span class="badge">${skill.trim()}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <h3 class="section-title">Appointment Details</h3>
+                    <div class="section-content">
+                        <p><strong>Scheduled:</strong> ${item.customer_company_name_with_appointment_datetime_with_specialist_name}</p>
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <h3 class="section-title">Meeting Minutes</h3>
+                    <div class="section-content">
+                        ${item.minutes_of_meeting.replace(/\n/g, "<br>")}
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <h3 class="section-title">Thread Information</h3>
+                    <div class="section-content">
+                        <p><strong>Thread ID:</strong> <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em;">${item.thread_id}</code></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function filterItems(searchTerm) {
+            const filtered = data_list.filter(item => 
+                item.customer_info.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.customer_info.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.customer_info.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.specialist_info.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.customer_sentiment.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.summary.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            currentData = filtered;
+            renderList(currentData);
+            
+            // If selected item is not in filtered results, clear selection
+            if (selectedItemIndex !== null && !filtered.find(item => data_list.indexOf(item) === selectedItemIndex)) {
+                selectedItemIndex = null;
+                document.getElementById('contentHeader').style.display = 'none';
+                document.getElementById('contentBody').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📅</div>
+                        <h2 class="empty-title">No Appointment Selected</h2>
+                        <p class="empty-subtitle">Click on an appointment from the list to view its details</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            filterItems(e.target.value);
+        });
+
+        // Initialize the list
+        window.addEventListener('load', () => {
+            renderList();
+        });
+        document.addEventListener('DOMContentLoaded', loadDataFromAPI);
+    </script>
+</body>
+</html>

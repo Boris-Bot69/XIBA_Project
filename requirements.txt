@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-dotenv
+pandas
+chromadb
+ipython
+langgraph
+langchain
+langchain-google-genai
+langchain-openai
+langchain-community
+langchain-ollama
+langchain_chroma
+langgraph-checkpoint-redis

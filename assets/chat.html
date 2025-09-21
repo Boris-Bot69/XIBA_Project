@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAiCAYAAADCp/A1AAAFB0lEQVRYR62YUW7bRhCGZ1dSIVkByqJ24pc4DNAC7VMpNwXyVukEtU4g5wRWTiD7BJZPYPsEdk5g9a1A2phv6ZsZpw9J7NRs0disJe52ZqtVKWpJrpQKEGBTs7vfzs78M0sGlp/VLx4149GoBxI8/DrAIMSvzwQEksOg7jjPAn8QWk43lxmzsXa/eux+uI7OErb9Ond2gmAQrrqP3Ti+bTIuaAODpaXqTvDrT4HNvLY2VpArrncCApo0KQ44eHfuPzEtsHJ/fZNgueSHb85fbNtCFNkVQqa9KCRsvH/tP8uamDwrRNRjDJq1WrX1f3i1EJK8A0zsa6giSG2nxnGxW5J872O9Wgi5vOb10GhydJxD923g7xUdEf2uvCqjEynhWMewzbi0zdyQeTFpAnC9pnMThvukCosefyHkPdfbEgL6EwCUnjpzHlJmJ6HGMB0pwKN4FIAy9W+iBQjoM47/LwhaCPm5++0GF/FREqjEy603wc8DekZwUfhnN5ZiS9lIOAAOvoSKkiEZDx2O0FyCK3GDiyRUISRBfPg9vJo6StTDi9d+Swn8cHSE3vNBVrYvf3v+Y17MUYyORNQpMdic5+gLIWnRpE5qCPJmDKMeF3D89twukfTYu2uNA8bk97agVpDpDB8f66Bectrp2LTNXto4w/K6xJxW0RxWkMYjR5pkbNrCaTua8/oqPCV5ujj3n+aNt4KkCZbve0cY9Bum2JwXUNuvfPmdB38PT4s2aw2pkuR2dJIGkpw/vQxe/CdRBuJld73Lhfgm/RPKkh8LcPDYm5SIWZu1hqQafn0d9STA5tRkpJu1aiOrRq+669uxwA5phhDCEqs2qk41JPXI82YhJHmByfEirNICOTxR/WTigzoY1JjTSCeAGivErslDgpfa74NfjhPq4WfFZi4kSYVk8gcU4u0adw4JImfhfnIRUxHQsKirqKn+ziQ217xdEvmlWrVtOpFMSDomIUWHsypWl+km1qSbtKCOT9Xe3USnaY8rmxQgPdPtHdbQpqlxNkLqHlKKStNURVQ3Ls0QWBI3yfPY0rmzYZjdMGtb0mSqSIJV2hfBc5+ez0BSFovbUYcWuczJuLx4M8UgHqf/7pXfsJEr6kU5dvg6zieQyntRpFoqBDyu8PKhbiKyJsYO6Qg7pGntNBgjYGAKmzxg8iheWYBiV0ES4M1NdIKaFdyZo9QlqsbM0WqARQAV07giYdlsKMi7a94+BS0ex0Ob40ja6KqRNa6omuStRwkqYuizyUWLVxo6UOcBzZOacdBn3i6L1llBacLiETJapCTjnm1QJyfOk5qkXQn4ziKXMRWXlN3qD0wWzOR20c7SgBTHJqkxzWNT49PjljExZQwHCpJjnGZd+E0LqvsMtllGLcRMxvbLmEjzxue9B94Zw2LC9P3YdLmaV3ookykb/xLhVvIaPJmnoBmZSkjUSgmiQ1rNVEN7FZ6hW/vJepoFmNXVpKVG1X2QnfQ8qhkpeLOhJZG8SCVZSdCkemBJuwj8w3kB6Q0btV3JGj/WOXox4KXno+qTdW3QgJgnfX13mlQcfY+hyz83VJtcqcmQr8QbjJkYpWuDTtZVLCbDaOiVIaZy3MRNd5POmqrdyW5EBz/tWn5SeQK3s30keQiTrpt3W8xtRgD6SgfxNQ6uN6AO6E7Z2Uv3pZmtmvN140FlVP6sPqwHBBPW/vjUFAbhy9NXRdLluk3nY8b/A8JW9YH85ZfTAAAAAElFTkSuQmCC" />
+    <title>Xiba - Xibix AI</title>
+    <style>
+        * {
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+            padding: 0;
+            color: #333;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .xibix-logo {
+            left: 20px;
+            position: absolute;
+            top: 20px;
+        }
+
+
+        .header {
+            text-align: center;
+            /* margin-bottom: 30px; */
+            flex-shrink: 0;
+        }
+
+        .sparkle-icon {
+            font-size: 32px;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 400;
+            color: #fff;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+            top: 0;
+            position: absolute;
+
+        }
+
+        .main-sub-title {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #fff;
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
+        }
+        
+
+        .chat-container { 
+            width: 100%;
+            max-width: 600px;
+            height: 85vh;
+            max-height: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .chat-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .new-chat-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .new-chat-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .chat-content {
+            padding: 24px;
+        }
+
+        .welcome-section {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .user-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .user-message {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 24px;
+            font-weight: 400;
+        }
+
+        .ai-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .ai-response {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+
+        .ai-greeting {
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .suggestion-list {
+            list-style: none;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .suggestion-list li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .suggestion-list li::before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .chat-box { 
+            height: 370px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 8px;
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 3px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
+        }
+
+        .message-text {
+            line-height: 1.6;
+        }
+
+        .message-text strong {
+            font-weight: 600;
+            color: inherit;
+        }
+
+        .message-text em {
+            font-style: italic;
+        }
+
+        .message-text code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+
+        .message.user .message-text code {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .message-outer {
+            margin-bottom: 20px;
+        }
+
+        .message { 
+            padding: 16px 20px;
+            border-radius: 18px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .message.user { 
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot { 
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .input-container {
+            background: white;
+            border-radius: 25px;
+            padding: 4px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .input-container:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .input-row { 
+            display: flex;
+            align-items: center;
+        }
+
+        .input-row input { 
+            flex: 1;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1rem;
+            background: transparent;
+            color: #333;
+            outline: none;
+        }
+
+        .input-row input::placeholder {
+            color: #aaa;
+            font-weight: 400;
+        }
+
+        .send-button { 
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-right: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-button:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .send-button:disabled { 
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-icon {
+            width: 16px;
+            height: 16px;
+            transform: rotate(-45deg);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .main-sub-title {
+                font-size: 1rem;
+            }
+            
+            .main-container {
+                padding: 10px;
+            }
+
+            .chat-container {
+                height: 80vh;
+                max-height: none;
+                max-width: none;
+                margin: 0;
+            }
+            
+            .chat-content {
+                padding: 16px;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="xibix-logo"><img src="/assets/xibix_venitus.png" alt="Xibix Logo"></div>
+        <div class="header">
+            <h1 class="main-title">Ask Xiba ✨<BR></h1>
+            <!-- <h6 class="main-sub-title">Your Cloud Journey Guide with Xibix</h6> -->
+            <div style="padding-top:10px"><h6 class="main-sub-title">Your Gateway to Cloud Transformation with Xibix.</h6></div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="chat-title">Chat</div>
+                <button class="new-chat-btn" onclick="startNewChat()">New Chat</button>
+            </div>
+            
+            <div class="chat-content">
+                <div id="welcomeSection" class="welcome-section">
+                    <div class="user-label">ME</div>
+                    <div class="user-message">What can I ask you to do?</div>
+                    
+                    <div class="ai-label">OUR AI</div>
+                    <div class="ai-response">
+                            <div class="ai-greeting">Hey, I’m Xiba 👋 I’m here to guide you through your cloud journey with Xibix.</div>
+                        <ul class="suggestion-list">
+
+                            <li>About our services e.g. What services do you provide?</li>
+                            <li>Anything to do with cloud solutions e.g. What cloud solutions and services do you offer?</li>
+                            <li>Anything to do with platform migration e.g How would you migrate legacy applications to the cloud?</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="chat-box hidden" id="chatBox"></div>
+                
+                <div class="input-container">
+                    <form class="input-row" id="chatForm">
+                        <input type="text" id="userInput" placeholder="Ask me anything about solution requirements" autocomplete="off" required />
+                        <button type="submit" class="send-button">
+                            <span>Send</span>
+                            <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var chat_threadid = "";
+        var user_id = 1;
+        var current_indx = 0;
+        var ws = null;
+        var chatStarted = false;
+
+        function fallbackUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+        }
+
+
+        startNewChat = () => {
+            const url = new URL(window.location.href);
+            const params = url.searchParams;
+            const randomId = (crypto?.randomUUID ? crypto.randomUUID() : fallbackUUID());
+            params.set('chat_threadid', randomId);
+            chat_threadid = randomId;
+            history.replaceState({}, '', `${url.pathname}?${params.toString()}`);
+            if (ws) {
+                ws.close();
+            }
+            document.getElementById('chatBox').innerHTML = '';
+            document.getElementById('welcomeSection').classList.remove('hidden');
+            document.getElementById('chatBox').classList.add('hidden');
+            current_indx = 0;
+            chatStarted = false;
+            initWS(user_id, chat_threadid);
+        }        
+
+        function initWS(user_id, thread_id) {
+            ws = new WebSocket(`ws://${window.location.hostname}:${window.location.port}/ws/chat/${user_id}/${thread_id}`);
+            ws.onopen = () => {
+                console.log("WebSocket is connected.");
+            };
+
+            ws.onmessage = (event) => {
+                console.log("WebSocket message received:", event.data);
+                const data = JSON.parse(event.data);
+                if(data.type === "processing") {
+                    console.log("Processing Event", data.message);
+                } else if (data.type === "msg_stream_start") {
+                    current_indx += 1;
+                    console.log("Message stream start event received:", current_indx);
+                } else if (data.type === "msg_stream") {
+                    console.log("Message stream event received:", current_indx);
+                    appendMessage('bot', data.message, current_indx);
+                } else if (data.type === "msg_stream_end") {
+                    console.log("Message stream end event received:", current_indx);
+                } else if (data?.message) {
+                    current_indx += 1;
+                    console.log(data.message, current_indx, "CCCCCCC");
+                    appendMessage('bot', data.message, current_indx);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.log("WebSocket error:", error);
+            };
+        }
+
+        window.addEventListener('load', () => {
+            const url = new URL(window.location.href);
+            const params = url.searchParams;
+
+            if (!params.has('chat_threadid')) {
+                // const randomId = crypto.randomUUID();
+                const randomId = (crypto?.randomUUID ? crypto.randomUUID() : fallbackUUID());
+
+                params.set('chat_threadid', randomId);
+                chat_threadid = randomId;
+                history.replaceState({}, '', `${url.pathname}?${params.toString()}`);
+                initWS(user_id, chat_threadid);
+            } else {
+                chat_threadid = params.get('chat_threadid');
+                initWS(user_id, chat_threadid);
+            }
+        });
+
+        const chatBox = document.getElementById('chatBox');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+
+        function showChatMode() {
+            if (!chatStarted) {
+                document.getElementById('welcomeSection').classList.add('hidden');
+                document.getElementById('chatBox').classList.remove('hidden');
+                chatStarted = true;
+            }
+        }
+
+        function formatMarkdown(text) {
+            // Convert **bold** to <strong>
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Convert *italic* to <em>
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // Convert line breaks to <br>
+            text = text.replace(/\n/g, '<br>');
+            
+            // Convert `code` to <code>
+            text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+            
+            return text;
+        }
+
+        function appendMessage(sender, text, index) {
+            showChatMode();
+            
+            if (sender === 'bot' && index) {
+                const botMessages = document.getElementsByClassName('bot_message_' + index);
+                let msgDiv = botMessages.length > 0 ? botMessages[0].parentNode.querySelector('.message-text') : null;
+                if (msgDiv) {
+                    msgDiv.innerHTML += formatMarkdown(text);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    return;
+                }
+            }
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
+            
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'message-label';
+            labelDiv.textContent = sender === 'user' ? 'You' : 'AI';
+            
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text ' + (sender === 'bot' ? 'bot_message_' + index : '');
+            textDiv.innerHTML = formatMarkdown(text);
+            
+            msgDiv.appendChild(labelDiv);
+            msgDiv.appendChild(textDiv);
+            
+            const outerDiv = document.createElement('div');
+            outerDiv.className = 'message-outer';
+            outerDiv.appendChild(msgDiv);
+            
+            chatBox.appendChild(outerDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            showChatMode();
+            appendMessage('user', message);
+            ws.send(JSON.stringify({ "query": message }));
+            userInput.value = '';
+        });
+
+        // Auto-focus input
+        userInput.focus();
+    </script>
+</body>
+</html>

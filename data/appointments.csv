@@ -1,0 +1,8 @@
+appointment_id,customer_id,specialist_id,datetime,duration_minutes,status,reason,thread_id
+APT-1000,CUST-004,ps-302,2025-09-26 11:00:00,30,booked,Security-focused cloud architecture design with budget optimization for robotics workloads,thread-2025-09-19-083544
+APT-1002,CUST-006,ps-303,2025-09-19 11:00:00,30,booked,Healthcare optimization consultation,12345
+APT-1003,CUST-007,Vijay,2025-09-19 17:30:00,30,booked,Slack–Google Workspace integration consultation,thread_001
+APT-1004,CUST-005,Vijay,2025-09-19 15:30:00,30,booked,Migration from Microsoft Teams to Slack with Google Workspace integration,b6b6b6b6-b6b6-b6b6-b6b6-b6b6b6b6b6b6
+APT-1005,CUST-006,Sofia Almeida,2025-09-19 11:30:00,30,booked,Private cloud consultation for secure prescription data,thread_2025_09_19_094820
+APT-1006,CUST-009,ps-417,2025-09-22 11:00:00,30,booked,Code migration to the cloud,thread_2025-09-19_09-48-20
+APT-1007,CUST-010,Layla_Karim_001,2025-09-22 13:00:00,30,booked,Platform modernization and cost optimization for automotive solutions,thread_2025_09_19_094820
