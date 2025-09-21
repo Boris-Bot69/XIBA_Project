@@ -1,21 +1,20 @@
-XIBA: AI-Powered Customer Onboarding Agent
+# 🤖 XIBA: The AI-Powered Customer Onboarding Agent
 
-This is XIBA, a FastAPI-powered, ReAct agent that serves as the primary point of contact for customer onboarding. The agent guides users from initial interaction to booking appointments with the appropriate specialists.
+XIBA is a **FastAPI-powered, ReAct agent** that serves as the primary point of contact for customer onboarding. It's designed to guide users seamlessly from their first interaction all the way to booking an appointment with the perfect specialist.
 
-Key Achievements:
+---
 
-Engineered a multi-tool LangChain ReAct agent to handle a complex conversation flow including customer onboarding, specialist searches, and appointment booking.
+## 🚀 Key Achievements & Contributions
 
-Integrated local Ollama embeddings to surface relevant case studies and build trust with users.
+* **Engineered a multi-tool `LangChain` ReAct agent** to handle a complex conversation flow, including customer onboarding, dynamic specialist searches, and real-time appointment booking.
+* **Integrated local `Ollama` embeddings** to intelligently surface relevant case studies, building immediate trust and credibility with potential customers.
+* **Implemented a robust system** to capture and store consented lead data in a `Redis` database for seamless handoff to consultants.
+* **Designed the core conversation flow and prompting strategy**, aligning the AI's responses with the company's unique offerings and brand values.
 
-Implemented a system to capture and store lead data with user consent in a Redis database.
+---
 
-Designed and implemented the conversation flow and prompting strategy, feeding the company's offerings and values into the LLM.
+## 🛠️ Technology Stack
 
-Tech Stack:
-
-Backend: Python, FastAPI (REST/WebSocket)
-
-AI/ML: OpenAI, LangChain, Ollama
-
-Database: Redis
+* **Backend:** `Python`, `FastAPI` (REST/WebSocket)
+* **AI/ML:** `OpenAI`, `LangChain`, `Ollama`
+* **Database:** `Redis`
