@@ -420,163 +420,174 @@
     </div>
 
     <script>
-        var chat_threadid = "";
-        var user_id = 1;
-        var current_indx = 0;
-        var ws = null;
-        var chatStarted = false;
+    var chat_threadid = "";
+    var user_id = "1"; // Als String definiert, passend zur Backend-Erwartung
+    var current_indx = 0;
+    var ws = null;
+    var chatStarted = false;
 
-        function fallbackUUID() {
+    function fallbackUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
+    }
+
+    startNewChat = () => {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        const randomId = (crypto?.randomUUID ? crypto.randomUUID() : fallbackUUID());
+        params.set('chat_threadid', randomId);
+        chat_threadid = randomId;
+        history.replaceState({}, '', `${url.pathname}?${params.toString()}`);
+
+        if (ws) {
+            ws.close();
         }
 
+        document.getElementById('chatBox').innerHTML = '';
+        document.getElementById('welcomeSection').classList.remove('hidden');
+        document.getElementById('chatBox').classList.add('hidden');
+        current_indx = 0;
+        chatStarted = false;
+        initWS(user_id, chat_threadid);
+    }
 
-        startNewChat = () => {
-            const url = new URL(window.location.href);
-            const params = url.searchParams;
+    function initWS(user_id, thread_id) {
+        // 1. Dynamisches Protokoll (WSS für HTTPS, WS für HTTP)
+        const isSecure = window.location.protocol === "https:";
+        const wsProtocol = isSecure ? "wss://" : "ws://";
+
+        // 2. window.location.host beinhaltet automatisch den Port, falls einer nötig ist
+        const wsUrl = `${wsProtocol}${window.location.host}/ws/chat/${user_id}/${thread_id}`;
+
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            console.log("WebSocket is connected to:", wsUrl);
+        };
+
+        ws.onmessage = (event) => {
+            console.log("WebSocket message received:", event.data);
+            const data = JSON.parse(event.data);
+
+            if(data.type === "processing") {
+                console.log("Processing Event", data.message);
+            } else if (data.type === "msg_stream_start") {
+                current_indx += 1;
+                console.log("Message stream start event received:", current_indx);
+            } else if (data.type === "msg_stream") {
+                console.log("Message stream event received:", current_indx);
+                appendMessage('bot', data.message, current_indx);
+            } else if (data.type === "msg_stream_end") {
+                console.log("Message stream end event received:", current_indx);
+            } else if (data?.message) {
+                current_indx += 1;
+                appendMessage('bot', data.message, current_indx);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+
+        ws.onclose = () => {
+            console.log("WebSocket connection closed.");
+        };
+    }
+
+    window.addEventListener('load', () => {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+
+        if (!params.has('chat_threadid')) {
             const randomId = (crypto?.randomUUID ? crypto.randomUUID() : fallbackUUID());
             params.set('chat_threadid', randomId);
             chat_threadid = randomId;
             history.replaceState({}, '', `${url.pathname}?${params.toString()}`);
-            if (ws) {
-                ws.close();
-            }
-            document.getElementById('chatBox').innerHTML = '';
-            document.getElementById('welcomeSection').classList.remove('hidden');
-            document.getElementById('chatBox').classList.add('hidden');
-            current_indx = 0;
-            chatStarted = false;
             initWS(user_id, chat_threadid);
-        }        
-
-        function initWS(user_id, thread_id) {
-            ws = new WebSocket(`ws://${window.location.hostname}:${window.location.port}/ws/chat/${user_id}/${thread_id}`);
-            ws.onopen = () => {
-                console.log("WebSocket is connected.");
-            };
-
-            ws.onmessage = (event) => {
-                console.log("WebSocket message received:", event.data);
-                const data = JSON.parse(event.data);
-                if(data.type === "processing") {
-                    console.log("Processing Event", data.message);
-                } else if (data.type === "msg_stream_start") {
-                    current_indx += 1;
-                    console.log("Message stream start event received:", current_indx);
-                } else if (data.type === "msg_stream") {
-                    console.log("Message stream event received:", current_indx);
-                    appendMessage('bot', data.message, current_indx);
-                } else if (data.type === "msg_stream_end") {
-                    console.log("Message stream end event received:", current_indx);
-                } else if (data?.message) {
-                    current_indx += 1;
-                    console.log(data.message, current_indx, "CCCCCCC");
-                    appendMessage('bot', data.message, current_indx);
-                }
-            };
-
-            ws.onerror = (error) => {
-                console.log("WebSocket error:", error);
-            };
+        } else {
+            chat_threadid = params.get('chat_threadid');
+            initWS(user_id, chat_threadid);
         }
+    });
 
-        window.addEventListener('load', () => {
-            const url = new URL(window.location.href);
-            const params = url.searchParams;
+    const chatBox = document.getElementById('chatBox');
+    const chatForm = document.getElementById('chatForm');
+    const userInput = document.getElementById('userInput');
 
-            if (!params.has('chat_threadid')) {
-                // const randomId = crypto.randomUUID();
-                const randomId = (crypto?.randomUUID ? crypto.randomUUID() : fallbackUUID());
+    function showChatMode() {
+        if (!chatStarted) {
+            document.getElementById('welcomeSection').classList.add('hidden');
+            document.getElementById('chatBox').classList.remove('hidden');
+            chatStarted = true;
+        }
+    }
 
-                params.set('chat_threadid', randomId);
-                chat_threadid = randomId;
-                history.replaceState({}, '', `${url.pathname}?${params.toString()}`);
-                initWS(user_id, chat_threadid);
-            } else {
-                chat_threadid = params.get('chat_threadid');
-                initWS(user_id, chat_threadid);
-            }
-        });
+    function formatMarkdown(text) {
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        text = text.replace(/\n/g, '<br>');
+        text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+        return text;
+    }
 
-        const chatBox = document.getElementById('chatBox');
-        const chatForm = document.getElementById('chatForm');
-        const userInput = document.getElementById('userInput');
+    function appendMessage(sender, text, index) {
+        showChatMode();
 
-        function showChatMode() {
-            if (!chatStarted) {
-                document.getElementById('welcomeSection').classList.add('hidden');
-                document.getElementById('chatBox').classList.remove('hidden');
-                chatStarted = true;
+        if (sender === 'bot' && index) {
+            const botMessages = document.getElementsByClassName('bot_message_' + index);
+            let msgDiv = botMessages.length > 0 ? botMessages[0].parentNode.querySelector('.message-text') : null;
+            if (msgDiv) {
+                msgDiv.innerHTML += formatMarkdown(text);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                return;
             }
         }
 
-        function formatMarkdown(text) {
-            // Convert **bold** to <strong>
-            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            
-            // Convert *italic* to <em>
-            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            
-            // Convert line breaks to <br>
-            text = text.replace(/\n/g, '<br>');
-            
-            // Convert `code` to <code>
-            text = text.replace(/`(.*?)`/g, '<code>$1</code>');
-            
-            return text;
-        }
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
 
-        function appendMessage(sender, text, index) {
-            showChatMode();
-            
-            if (sender === 'bot' && index) {
-                const botMessages = document.getElementsByClassName('bot_message_' + index);
-                let msgDiv = botMessages.length > 0 ? botMessages[0].parentNode.querySelector('.message-text') : null;
-                if (msgDiv) {
-                    msgDiv.innerHTML += formatMarkdown(text);
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    return;
-                }
-            }
-            
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
-            
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'message-label';
-            labelDiv.textContent = sender === 'user' ? 'You' : 'AI';
-            
-            const textDiv = document.createElement('div');
-            textDiv.className = 'message-text ' + (sender === 'bot' ? 'bot_message_' + index : '');
-            textDiv.innerHTML = formatMarkdown(text);
-            
-            msgDiv.appendChild(labelDiv);
-            msgDiv.appendChild(textDiv);
-            
-            const outerDiv = document.createElement('div');
-            outerDiv.className = 'message-outer';
-            outerDiv.appendChild(msgDiv);
-            
-            chatBox.appendChild(outerDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'message-label';
+        labelDiv.textContent = sender === 'user' ? 'You' : 'AI';
 
-        chatForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const message = userInput.value.trim();
-            if (!message) return;
-            
-            showChatMode();
-            appendMessage('user', message);
+        const textDiv = document.createElement('div');
+        textDiv.className = 'message-text ' + (sender === 'bot' ? 'bot_message_' + index : '');
+        textDiv.innerHTML = formatMarkdown(text);
+
+        msgDiv.appendChild(labelDiv);
+        msgDiv.appendChild(textDiv);
+
+        const outerDiv = document.createElement('div');
+        outerDiv.className = 'message-outer';
+        outerDiv.appendChild(msgDiv);
+
+        chatBox.appendChild(outerDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        showChatMode();
+        appendMessage('user', message);
+
+        // Sicherstellen, dass der WebSocket offen ist, bevor gesendet wird
+        if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ "query": message }));
-            userInput.value = '';
-        });
+        } else {
+            console.error("WebSocket is not connected. Cannot send message.");
+            appendMessage('bot', '*Verbindung getrennt. Bitte laden Sie die Seite neu.*', current_indx + 1);
+        }
 
-        // Auto-focus input
-        userInput.focus();
-    </script>
+        userInput.value = '';
+    });
+
+    // Auto-focus input
+    userInput.focus();
+</script>
 </body>
 </html>
