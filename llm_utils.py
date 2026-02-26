@@ -13,7 +13,7 @@ load_dotenv()
 
 def get_llm() -> BaseChatModel:
     return ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemini-flash",
         temperature=0.0,
         google_api_key=os.environ["GOOGLE_API_KEY"]
     )
@@ -21,7 +21,7 @@ def get_llm() -> BaseChatModel:
 
 def get_custom_llm() -> BaseChatModel:
     return ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemini-flash",
         temperature=0.0,
         google_api_key=os.environ["GOOGLE_API_KEY"]
     )
