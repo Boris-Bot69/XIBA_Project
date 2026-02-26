@@ -5,19 +5,11 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python fastapi_app.py
     envVars:
-      # --- LLM Provider: set ONE of the two API key blocks below ---
-
-      # Option A: OpenAI (or any OpenAI-compatible endpoint)
-      - key: OPENAI_API_KEY
+      # --- LLM Provider: Google Gemini ---
+      - key: GOOGLE_API_KEY
         sync: false          # set manually in Render dashboard
-      - key: OPEN_API_URL
-        value: https://api.openai.com/v1   # change if using a custom base URL
 
-      # Option B: Google Gemini — uncomment and remove Option A if preferred
-      # - key: GOOGLE_API_KEY
-      #   sync: false
-
-      # --- Redis (use Upstash or any Redis provider) ---
+      # --- Redis (Upstash) ---
       - key: REDIS_HOST
         sync: false
       - key: REDIS_PORT
