@@ -7,6 +7,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from google import genai as google_genai
+from google.genai import types as google_genai_types
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,7 +33,10 @@ class GeminiEmbeddings(Embeddings):
     """Embeddings using the google-genai SDK directly to avoid langchain-google-genai v1beta issues."""
 
     def __init__(self, api_key: str):
-        self._client = google_genai.Client(api_key=api_key)
+        self._client = google_genai.Client(
+            api_key=api_key,
+            http_options=google_genai_types.HttpOptions(api_version="v1")
+        )
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         return [self.embed_query(text) for text in texts]
