@@ -64,15 +64,11 @@ class AppLogger:
             file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
             self._logger.addHandler(file_handler)
 
-            # Console Handler
-            log_console = False
-            if log_console:
-                console_handler = logging.StreamHandler(sys.stdout)
-                console_handler.setLevel(
-                    LOG_LEVEL
-                )  # Set console handler to DEBUG level
-                console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-                self._logger.addHandler(console_handler)
+            # Console Handler (always enabled for container/cloud compatibility)
+            console_handler = logging.StreamHandler(sys.stdout)
+            console_handler.setLevel(LOG_LEVEL)
+            console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+            self._logger.addHandler(console_handler)
 
             # Prevent propagation to root logger
             self._logger.propagate = False

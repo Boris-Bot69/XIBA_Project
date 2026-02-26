@@ -1,7 +1,9 @@
 # main.py
 import json
+import os
 import webbrowser
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
@@ -24,6 +26,14 @@ def create_app() -> FastAPI:
         title="MultiAgent Boilerplate API",
         description="API for interacting with the MultiAgent Boilerplate",
         version="1.0.0"
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     # Serve static files from assets directory
@@ -68,8 +78,6 @@ def create_app() -> FastAPI:
 
 
 
-    app.include_router(websocket.router)
-
     for route in app.routes:
         methods = getattr(route, "methods", ["WEBSOCKET"])  # REST has .methods, WS doesn't
         print(f"{methods} -> {route.path}")
@@ -90,7 +98,7 @@ def main() -> None:
     # graph = ChatbotRagRetrieval()
     # Create the FastAPI application
     # fastapi_app = create_app(graph)
-    webserver_port = 8000
+    webserver_port = int(os.environ.get("PORT", 8000))
     fastapi_app = create_app()
     
     # Open chat interface in browser

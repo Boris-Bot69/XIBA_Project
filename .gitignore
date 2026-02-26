@@ -1,0 +1,21 @@
+# Environment variables (never commit secrets)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+logs/
+
+# Data files that may contain personal info (optional - remove if you want to track these)
+# data/customer_profiles.csv
+# data/appointments.csv
