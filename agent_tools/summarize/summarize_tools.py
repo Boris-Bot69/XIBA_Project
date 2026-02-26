@@ -5,7 +5,7 @@ import random
 from typing import List
 import pandas as pd
 from langchain_core.tools import tool
-from langchain.schema import HumanMessage, SystemMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
 from llm_utils import get_custom_llm, get_llm
 from utils import get_cwd

@@ -14,8 +14,8 @@ import ast
 import os
 import json
 from langchain_ollama import OllamaEmbeddings
-from langchain.chat_models import init_chat_model
-from langchain.chat_models.base import BaseChatModel
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.language_models import init_chat_model
 from langchain_core.embeddings import Embeddings
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -185,7 +185,7 @@ def get_embedding_function() -> Embeddings:
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
         print("\n** Initialized Google GenAI Embeddings **\n")
         return GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
+            model="text-embedding-004",
         )
 
     # Local fallback — requires Ollama running
