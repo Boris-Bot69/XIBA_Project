@@ -1,10 +1,12 @@
 import ast
 import os
 import json
+from typing import List
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
+from google import genai as google_genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,11 +28,25 @@ def get_custom_llm() -> BaseChatModel:
     )
 
 
+class GeminiEmbeddings(Embeddings):
+    """Embeddings using the google-genai SDK directly to avoid langchain-google-genai v1beta issues."""
+
+    def __init__(self, api_key: str):
+        self._client = google_genai.Client(api_key=api_key)
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        return [self.embed_query(text) for text in texts]
+
+    def embed_query(self, text: str) -> List[float]:
+        result = self._client.models.embed_content(
+            model="text-embedding-004",
+            contents=text
+        )
+        return result.embeddings[0].values
+
+
 def get_embedding_function() -> Embeddings:
-    return GoogleGenerativeAIEmbeddings(
-        model="text-embedding-004",
-        google_api_key=os.environ["GOOGLE_API_KEY"]
-    )
+    return GeminiEmbeddings(api_key=os.environ["GOOGLE_API_KEY"])
 
 
 def summarize_conversation(messages: list) -> str:
