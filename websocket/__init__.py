@@ -20,7 +20,7 @@ def get_handler_module(handler: str):
     try:
         return handler_map.get(handler)
     except Exception as e:
-        logger.error(f"Error importing handler module '{module_name}': {str(e)}")
+        logger.error(f"Error importing handler module '{handler}': {str(e)}")
         return None
     
 def validate_user(user_id: str):

@@ -65,7 +65,7 @@ async def _process_graph_stream(
             tags = event.get("tags", [])  # Can contain tool names etc.
             logger.info( f"Event received: type={event_type}, name={event_name}, run_id={run_id}")
             # Skip certain events if needed           
-            if event_name == "ChatGoogleGenerativeAI" or event_name == "CustomChatOpenAI":
+            if event_name == "ChatGoogleGenerativeAI":
                 continue
             # logger.debug(f"Event data keys: {list(event_data.keys()) if isinstance(event_data, dict) else 'N/A'}")
             # print("\n\n>>>Stream event: %s" % safe_jsondumps(_ensure_serializable(event), indent=2))

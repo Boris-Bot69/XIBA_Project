@@ -32,13 +32,13 @@ class ConversationManager:
             "messages": self.conversation_history[thread_id]
         }
 
-    def update_thread_name(self, thread_id: str, name: str) -> None:
+    async def update_thread_name(self, thread_id: str, name: str) -> bool:
         """Update the name of a conversation thread."""
-        # For simplicity, we just store the name in the first message
         if thread_id in self.conversation_history and self.conversation_history[thread_id]:
             self.conversation_history[thread_id][0]['thread_name'] = name
         elif thread_id in self.conversation_history:
             self.conversation_history[thread_id].append({'thread_name': name})
+        return True
 
     def add_message(self, thread_id: str, data: Dict[str, Any]) -> None:
         """Store conversation messages."""
@@ -50,5 +50,5 @@ class ConversationManager:
         """Return conversation history."""
         return self.conversation_history.get(thread_id, [])
     
-    def generate_thread_name(self, user_msg, final_msg):
+    async def generate_thread_name(self, user_message: str, ai_message: str) -> str:
         return "New Conversation - %s" % str(uuid4())
