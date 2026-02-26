@@ -17,7 +17,7 @@ from langchain_ollama import OllamaEmbeddings
 from langchain.chat_models import init_chat_model
 from langchain.chat_models.base import BaseChatModel
 from langchain_core.embeddings import Embeddings
-from langchain.schema import HumanMessage, SystemMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
