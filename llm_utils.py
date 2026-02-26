@@ -1,4 +1,3 @@
-import ast
 import os
 import json
 from typing import List
@@ -7,7 +6,6 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from google import genai as google_genai
-from google.genai import types as google_genai_types
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,10 +31,8 @@ class GeminiEmbeddings(Embeddings):
     """Embeddings using the google-genai SDK directly to avoid langchain-google-genai v1beta issues."""
 
     def __init__(self, api_key: str):
-        self._client = google_genai.Client(
-            api_key=api_key,
-            http_options=google_genai_types.HttpOptions(api_version="v1")
-        )
+        # Let the SDK handle the API version dynamically instead of forcing "v1"
+        self._client = google_genai.Client(api_key=api_key)
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         return [self.embed_query(text) for text in texts]
@@ -53,23 +49,27 @@ def get_embedding_function() -> Embeddings:
     return GeminiEmbeddings(api_key=os.environ["GOOGLE_API_KEY"])
 
 
-def summarize_conversation(messages: list) -> str:
+def summarize_conversation(messages: list) -> dict:
     llm = get_custom_llm()
 
     prompt = f"Please summarize the following conversation and provide a json format of summary, customer_info (strictly json with case sensitive keys - ['name', 'company', 'domain', 'email', 'topic']), specialist_info (strictly json with case sensitive keys - ['name', 'designation', 'expertise']), customer_sentiment, minutes_of_meeting (Elaborate as much as possible. Try to keep in chronological order), customer_company_name_with_appointment_datetime_with_specialist_name Eg {{\"summary\": \"\", \"customer_info\": \"\", \"specialist_info\": \"\", \"customer_sentiment\": \"\", \"minutes_of_meeting\": \"\", \"customer_company_name_with_appointment_datetime_with_specialist_name\": \"\"}}:\nMessages:\n"
+
     for message in messages:
         prompt += f"Role: {message['role']}, Content: {message['content']}\n"
 
     response = llm.invoke([SystemMessage(content=prompt)])
     json_resp = response.content.strip()
+
+    # Clean up potential markdown formatting from the LLM response
     if json_resp.startswith("```") and json_resp.endswith("```"):
-        json_resp = json_resp[3:-3].strip()
-    if json_resp.startswith("json"):
-        json_resp = json_resp[4:].strip()
+        json_resp = json_resp.strip("`").strip()
+        if json_resp.lower().startswith("json"):
+            json_resp = json_resp[4:].strip()
 
     try:
-        return ast.literal_eval(json_resp)
-    except (ValueError, SyntaxError):
+        # Use json.loads to properly handle standard JSON
+        return json.loads(json_resp)
+    except (ValueError, SyntaxError, json.JSONDecodeError):
         return {
             "summary": "",
             "customer_info": "",

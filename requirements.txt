@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+websockets
 python-dotenv
 pandas
 numpy
@@ -7,6 +8,7 @@ redis
 langgraph
 langchain
 langchain-google-genai
+google-genai
 langchain-community
 langchain_chroma
 langgraph-checkpoint-redis

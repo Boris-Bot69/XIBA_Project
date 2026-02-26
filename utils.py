@@ -4,19 +4,23 @@ import redis
 import datetime
 from typing import Any
 
+
 def get_current_datetime_str() -> str:
     """Get the current date and time as a formatted string."""
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S %Z")
+
 
 def get_cwd() -> str:
     """Get the current working directory."""
     # get this file directory
     return os.path.dirname(os.path.abspath(__file__))
 
+
 def chunk_response(text: str, size: int = 20):
     """Yield text in small chunks for streaming effect."""
     for i in range(0, len(text), size):
-        yield text[i : i + size]
+        yield text[i: i + size]
+
 
 def _convert_pydantic_recursive(obj: Any) -> Any:
     """
@@ -36,6 +40,7 @@ def _convert_pydantic_recursive(obj: Any) -> Any:
 def safe_jsondumps(obj, indent=None):
     default = lambda o: f"<<non-serializable: {type(o).__qualname__}>>"
     return json.dumps(obj, default=default, indent=indent)
+
 
 def _ensure_serializable(data: Any) -> Any:
     """
@@ -66,12 +71,13 @@ def get_redis_instance():
     redis_host = os.getenv("REDIS_HOST", "localhost")
     redis_port = int(os.getenv("REDIS_PORT", 6379))
     redis_password = os.getenv("REDIS_PASSWORD", None)
+
     # Enable TLS for cloud Redis providers (e.g. Upstash) — detected by presence of a password
     use_tls = redis_password is not None and redis_host != "localhost"
+
     return redis.Redis(
         host=redis_host,
         port=redis_port,
         password=redis_password,
-        ssl=use_tls,
-        ssl_cert_reqs=None if use_tls else None,
+        ssl=use_tls
     )
