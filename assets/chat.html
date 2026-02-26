@@ -37,10 +37,8 @@
             top: 20px;
         }
 
-
         .header {
             text-align: center;
-            /* margin-bottom: 30px; */
             flex-shrink: 0;
         }
 
@@ -58,7 +56,6 @@
             letter-spacing: -0.5px;
             top: 0;
             position: absolute;
-
         }
 
         .main-sub-title {
@@ -68,9 +65,8 @@
             margin-bottom: 20px;
             letter-spacing: -0.3px;
         }
-        
 
-        .chat-container { 
+        .chat-container {
             width: 100%;
             max-width: 600px;
             height: 85vh;
@@ -186,7 +182,7 @@
             left: 0;
         }
 
-        .chat-box { 
+        .chat-box {
             height: 370px;
             overflow-y: auto;
             margin-bottom: 20px;
@@ -236,7 +232,7 @@
             margin-bottom: 20px;
         }
 
-        .message { 
+        .message {
             padding: 16px 20px;
             border-radius: 18px;
             max-width: 85%;
@@ -244,14 +240,14 @@
             line-height: 1.5;
         }
 
-        .message.user { 
+        .message.user {
             background: #667eea;
             color: white;
             margin-left: auto;
             border-bottom-right-radius: 4px;
         }
 
-        .message.bot { 
+        .message.bot {
             background: #f8f9fa;
             color: #333;
             border: 1px solid rgba(0,0,0,0.05);
@@ -281,12 +277,12 @@
             box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
         }
 
-        .input-row { 
+        .input-row {
             display: flex;
             align-items: center;
         }
 
-        .input-row input { 
+        .input-row input {
             flex: 1;
             padding: 16px 20px;
             border: none;
@@ -302,7 +298,7 @@
             font-weight: 400;
         }
 
-        .send-button { 
+        .send-button {
             background: #667eea;
             color: white;
             border: none;
@@ -323,7 +319,7 @@
             transform: translateY(-1px);
         }
 
-        .send-button:disabled { 
+        .send-button:disabled {
             background: #ccc;
             cursor: not-allowed;
             transform: none;
@@ -347,7 +343,7 @@
             .main-sub-title {
                 font-size: 1rem;
             }
-            
+
             .main-container {
                 padding: 10px;
             }
@@ -358,11 +354,11 @@
                 max-width: none;
                 margin: 0;
             }
-            
+
             .chat-content {
                 padding: 16px;
             }
-            
+
             .header {
                 margin-bottom: 20px;
             }
@@ -374,7 +370,6 @@
         <div class="xibix-logo"><img src="/assets/xibix_venitus.png" alt="Xibix Logo"></div>
         <div class="header">
             <h1 class="main-title">Ask Xiba ✨<BR></h1>
-            <!-- <h6 class="main-sub-title">Your Cloud Journey Guide with Xibix</h6> -->
             <div style="padding-top:10px"><h6 class="main-sub-title">Your Gateway to Cloud Transformation with Xibix.</h6></div>
         </div>
 
@@ -383,26 +378,25 @@
                 <div class="chat-title">Chat</div>
                 <button class="new-chat-btn" onclick="startNewChat()">New Chat</button>
             </div>
-            
+
             <div class="chat-content">
                 <div id="welcomeSection" class="welcome-section">
                     <div class="user-label">ME</div>
                     <div class="user-message">What can I ask you to do?</div>
-                    
+
                     <div class="ai-label">OUR AI</div>
                     <div class="ai-response">
                             <div class="ai-greeting">Hey, I’m Xiba 👋 I’m here to guide you through your cloud journey with Xibix.</div>
                         <ul class="suggestion-list">
-
                             <li>About our services e.g. What services do you provide?</li>
                             <li>Anything to do with cloud solutions e.g. What cloud solutions and services do you offer?</li>
                             <li>Anything to do with platform migration e.g How would you migrate legacy applications to the cloud?</li>
                         </ul>
                     </div>
                 </div>
-                
+
                 <div class="chat-box hidden" id="chatBox"></div>
-                
+
                 <div class="input-container">
                     <form class="input-row" id="chatForm">
                         <input type="text" id="userInput" placeholder="Ask me anything about solution requirements" autocomplete="off" required />
@@ -420,174 +414,196 @@
     </div>
 
     <script>
-    var chat_threadid = "";
-    var user_id = "1"; // Als String definiert, passend zur Backend-Erwartung
-    var current_indx = 0;
-    var ws = null;
-    var chatStarted = false;
+        var chat_threadid = "";
+        var user_id = "1";
+        var current_indx = 0;
+        var ws = null;
+        var chatStarted = false;
 
-    function fallbackUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    startNewChat = () => {
-        const url = new URL(window.location.href);
-        const params = url.searchParams;
-        const randomId = (crypto?.randomUUID ? crypto.randomUUID() : fallbackUUID());
-        params.set('chat_threadid', randomId);
-        chat_threadid = randomId;
-        history.replaceState({}, '', `${url.pathname}?${params.toString()}`);
-
-        if (ws) {
-            ws.close();
+        function fallbackUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
         }
 
-        document.getElementById('chatBox').innerHTML = '';
-        document.getElementById('welcomeSection').classList.remove('hidden');
-        document.getElementById('chatBox').classList.add('hidden');
-        current_indx = 0;
-        chatStarted = false;
-        initWS(user_id, chat_threadid);
-    }
-
-    function initWS(user_id, thread_id) {
-        // 1. Dynamisches Protokoll (WSS für HTTPS, WS für HTTP)
-        const isSecure = window.location.protocol === "https:";
-        const wsProtocol = isSecure ? "wss://" : "ws://";
-
-        // 2. window.location.host beinhaltet automatisch den Port, falls einer nötig ist
-        const wsUrl = `${wsProtocol}${window.location.host}/ws/chat/${user_id}/${thread_id}`;
-
-        ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-            console.log("WebSocket is connected to:", wsUrl);
-        };
-
-        ws.onmessage = (event) => {
-            console.log("WebSocket message received:", event.data);
-            const data = JSON.parse(event.data);
-
-            if(data.type === "processing") {
-                console.log("Processing Event", data.message);
-            } else if (data.type === "msg_stream_start") {
-                current_indx += 1;
-                console.log("Message stream start event received:", current_indx);
-            } else if (data.type === "msg_stream") {
-                console.log("Message stream event received:", current_indx);
-                appendMessage('bot', data.message, current_indx);
-            } else if (data.type === "msg_stream_end") {
-                console.log("Message stream end event received:", current_indx);
-            } else if (data?.message) {
-                current_indx += 1;
-                appendMessage('bot', data.message, current_indx);
-            }
-        };
-
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
-        };
-
-        ws.onclose = () => {
-            console.log("WebSocket connection closed.");
-        };
-    }
-
-    window.addEventListener('load', () => {
-        const url = new URL(window.location.href);
-        const params = url.searchParams;
-
-        if (!params.has('chat_threadid')) {
+        startNewChat = () => {
+            const url = new URL(window.location.href);
+            const params = url.searchParams;
             const randomId = (crypto?.randomUUID ? crypto.randomUUID() : fallbackUUID());
             params.set('chat_threadid', randomId);
             chat_threadid = randomId;
             history.replaceState({}, '', `${url.pathname}?${params.toString()}`);
-            initWS(user_id, chat_threadid);
-        } else {
-            chat_threadid = params.get('chat_threadid');
+
+            if (ws) {
+                ws.close();
+            }
+
+            document.getElementById('chatBox').innerHTML = '';
+            document.getElementById('welcomeSection').classList.remove('hidden');
+            document.getElementById('chatBox').classList.add('hidden');
+            current_indx = 0;
+            chatStarted = false;
             initWS(user_id, chat_threadid);
         }
-    });
 
-    const chatBox = document.getElementById('chatBox');
-    const chatForm = document.getElementById('chatForm');
-    const userInput = document.getElementById('userInput');
+        function initWS(user_id, thread_id) {
+            const isSecure = window.location.protocol === "https:";
+            const wsProtocol = isSecure ? "wss://" : "ws://";
+            const wsUrl = `${wsProtocol}${window.location.host}/ws/chat/${user_id}/${thread_id}`;
 
-    function showChatMode() {
-        if (!chatStarted) {
-            document.getElementById('welcomeSection').classList.add('hidden');
-            document.getElementById('chatBox').classList.remove('hidden');
-            chatStarted = true;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log("WebSocket is connected to:", wsUrl);
+            };
+
+            ws.onmessage = (event) => {
+                console.log("WebSocket message received:", event.data);
+                const data = JSON.parse(event.data);
+
+                if (data.type === "processing") {
+                    console.log("Processing Event", data.message);
+                } else if (data.type === "msg_stream_start") {
+                    current_indx += 1;
+                    console.log("Message stream start event received:", current_indx);
+                } else if (data.type === "msg_stream") {
+                    console.log("Message stream event received:", current_indx);
+                    appendMessage('bot', data.message, current_indx);
+                } else if (data.type === "msg_stream_end") {
+                    console.log("Message stream end event received:", current_indx);
+                }
+                // NEU: Spezielle Behandlung für die agent_response
+                else if (data.type === "agent_response") {
+                    current_indx += 1;
+                    let fullText = "";
+
+                    // Prüfen, ob der Inhalt als Liste/Array kommt (LangChain Format)
+                    if (Array.isArray(data.content)) {
+                        data.content.forEach(item => {
+                            if (typeof item === 'string') {
+                                fullText += item;
+                            } else if (item && typeof item === 'object' && item.text) {
+                                fullText += item.text;
+                            }
+                        });
+                    }
+                    // Falls es doch ein einfacher String ist
+                    else if (typeof data.content === 'string') {
+                        fullText = data.content;
+                    }
+
+                    if (fullText) {
+                        appendMessage('bot', fullText, current_indx);
+                    }
+                }
+                // Fallback für alte Nachrichtenformate
+                else if (data?.message) {
+                    current_indx += 1;
+                    appendMessage('bot', data.message, current_indx);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+
+            ws.onclose = () => {
+                console.log("WebSocket connection closed.");
+            };
         }
-    }
 
-    function formatMarkdown(text) {
-        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        text = text.replace(/\n/g, '<br>');
-        text = text.replace(/`(.*?)`/g, '<code>$1</code>');
-        return text;
-    }
+        window.addEventListener('load', () => {
+            const url = new URL(window.location.href);
+            const params = url.searchParams;
 
-    function appendMessage(sender, text, index) {
-        showChatMode();
+            if (!params.has('chat_threadid')) {
+                const randomId = (crypto?.randomUUID ? crypto.randomUUID() : fallbackUUID());
+                params.set('chat_threadid', randomId);
+                chat_threadid = randomId;
+                history.replaceState({}, '', `${url.pathname}?${params.toString()}`);
+                initWS(user_id, chat_threadid);
+            } else {
+                chat_threadid = params.get('chat_threadid');
+                initWS(user_id, chat_threadid);
+            }
+        });
 
-        if (sender === 'bot' && index) {
-            const botMessages = document.getElementsByClassName('bot_message_' + index);
-            let msgDiv = botMessages.length > 0 ? botMessages[0].parentNode.querySelector('.message-text') : null;
-            if (msgDiv) {
-                msgDiv.innerHTML += formatMarkdown(text);
-                chatBox.scrollTop = chatBox.scrollHeight;
-                return;
+        const chatBox = document.getElementById('chatBox');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+
+        function showChatMode() {
+            if (!chatStarted) {
+                document.getElementById('welcomeSection').classList.add('hidden');
+                document.getElementById('chatBox').classList.remove('hidden');
+                chatStarted = true;
             }
         }
 
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
-
-        const labelDiv = document.createElement('div');
-        labelDiv.className = 'message-label';
-        labelDiv.textContent = sender === 'user' ? 'You' : 'AI';
-
-        const textDiv = document.createElement('div');
-        textDiv.className = 'message-text ' + (sender === 'bot' ? 'bot_message_' + index : '');
-        textDiv.innerHTML = formatMarkdown(text);
-
-        msgDiv.appendChild(labelDiv);
-        msgDiv.appendChild(textDiv);
-
-        const outerDiv = document.createElement('div');
-        outerDiv.className = 'message-outer';
-        outerDiv.appendChild(msgDiv);
-
-        chatBox.appendChild(outerDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const message = userInput.value.trim();
-        if (!message) return;
-
-        showChatMode();
-        appendMessage('user', message);
-
-        // Sicherstellen, dass der WebSocket offen ist, bevor gesendet wird
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ "query": message }));
-        } else {
-            console.error("WebSocket is not connected. Cannot send message.");
-            appendMessage('bot', '*Verbindung getrennt. Bitte laden Sie die Seite neu.*', current_indx + 1);
+        function formatMarkdown(text) {
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            text = text.replace(/\n/g, '<br>');
+            text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+            return text;
         }
 
-        userInput.value = '';
-    });
+        function appendMessage(sender, text, index) {
+            showChatMode();
 
-    // Auto-focus input
-    userInput.focus();
-</script>
+            if (sender === 'bot' && index) {
+                const botMessages = document.getElementsByClassName('bot_message_' + index);
+                let msgDiv = botMessages.length > 0 ? botMessages[0].parentNode.querySelector('.message-text') : null;
+                if (msgDiv) {
+                    msgDiv.innerHTML += formatMarkdown(text);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    return;
+                }
+            }
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
+
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'message-label';
+            labelDiv.textContent = sender === 'user' ? 'You' : 'AI';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text ' + (sender === 'bot' ? 'bot_message_' + index : '');
+            textDiv.innerHTML = formatMarkdown(text);
+
+            msgDiv.appendChild(labelDiv);
+            msgDiv.appendChild(textDiv);
+
+            const outerDiv = document.createElement('div');
+            outerDiv.className = 'message-outer';
+            outerDiv.appendChild(msgDiv);
+
+            chatBox.appendChild(outerDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            showChatMode();
+            appendMessage('user', message);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ "query": message }));
+            } else {
+                console.error("WebSocket is not connected. Cannot send message.");
+                appendMessage('bot', '*Verbindung getrennt. Bitte laden Sie die Seite neu.*', current_indx + 1);
+            }
+
+            userInput.value = '';
+        });
+
+        // Auto-focus input
+        userInput.focus();
+    </script>
 </body>
 </html>
