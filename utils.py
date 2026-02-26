@@ -66,4 +66,12 @@ def get_redis_instance():
     redis_host = os.getenv("REDIS_HOST", "localhost")
     redis_port = int(os.getenv("REDIS_PORT", 6379))
     redis_password = os.getenv("REDIS_PASSWORD", None)
-    return redis.Redis(host=redis_host, port=redis_port, password=redis_password)
+    # Enable TLS for cloud Redis providers (e.g. Upstash) — detected by presence of a password
+    use_tls = redis_password is not None and redis_host != "localhost"
+    return redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        password=redis_password,
+        ssl=use_tls,
+        ssl_cert_reqs=None if use_tls else None,
+    )
