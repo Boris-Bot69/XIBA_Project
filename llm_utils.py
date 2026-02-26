@@ -39,7 +39,7 @@ class GeminiEmbeddings(Embeddings):
 
     def embed_query(self, text: str) -> List[float]:
         result = self._client.models.embed_content(
-            model="text-embedding-004",
+            model="gemini-embedding-001",
             contents=text
         )
         return result.embeddings[0].values

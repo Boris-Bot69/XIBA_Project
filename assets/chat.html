@@ -335,6 +335,30 @@
             display: none;
         }
 
+        /* --- Typing Indicator Styles --- */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 0;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #a0a0a0;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
         @media (max-width: 768px) {
             .main-title {
                 font-size: 2rem;
@@ -367,7 +391,7 @@
 </head>
 <body>
     <div class="main-container">
-        <div class="xibix-logo"><img src="/assets/xibix_venitus.png" alt="Xibix Logo"></div>
+        <div class="xibix-logo"><img src="/assets/xibix_venitus.png" alt="Xibix Logo" onerror="this.style.display='none'"></div>
         <div class="header">
             <h1 class="main-title">Ask Xiba ✨<BR></h1>
             <div style="padding-top:10px"><h6 class="main-sub-title">Your Gateway to Cloud Transformation with Xibix.</h6></div>
@@ -464,8 +488,10 @@
 
                 if (data.type === "processing") {
                     console.log("Processing Event", data.message);
+                    showTypingIndicator(); // Bot denkt nach -> Punkte zeigen
                 } else if (data.type === "msg_stream_start") {
                     current_indx += 1;
+                    removeTypingIndicator(); // Bot tippt -> Punkte weg
                     console.log("Message stream start event received:", current_indx);
                 } else if (data.type === "msg_stream") {
                     console.log("Message stream event received:", current_indx);
@@ -473,12 +499,11 @@
                 } else if (data.type === "msg_stream_end") {
                     console.log("Message stream end event received:", current_indx);
                 }
-                // NEU: Spezielle Behandlung für die agent_response
                 else if (data.type === "agent_response") {
                     current_indx += 1;
-                    let fullText = "";
+                    removeTypingIndicator(); // Antwort da -> Punkte weg
 
-                    // Prüfen, ob der Inhalt als Liste/Array kommt (LangChain Format)
+                    let fullText = "";
                     if (Array.isArray(data.content)) {
                         data.content.forEach(item => {
                             if (typeof item === 'string') {
@@ -488,7 +513,6 @@
                             }
                         });
                     }
-                    // Falls es doch ein einfacher String ist
                     else if (typeof data.content === 'string') {
                         fullText = data.content;
                     }
@@ -497,9 +521,9 @@
                         appendMessage('bot', fullText, current_indx);
                     }
                 }
-                // Fallback für alte Nachrichtenformate
                 else if (data?.message) {
                     current_indx += 1;
+                    removeTypingIndicator(); // Antwort da -> Punkte weg
                     appendMessage('bot', data.message, current_indx);
                 }
             };
@@ -584,6 +608,41 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
+        function showTypingIndicator() {
+            if (document.getElementById('typing-indicator-container')) return;
+
+            showChatMode();
+
+            const container = document.createElement('div');
+            container.id = 'typing-indicator-container';
+            container.className = 'message-outer';
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message bot';
+
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'message-label';
+            labelDiv.textContent = 'AI';
+
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+            msgDiv.appendChild(labelDiv);
+            msgDiv.appendChild(typingDiv);
+            container.appendChild(msgDiv);
+
+            chatBox.appendChild(container);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator-container');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const message = userInput.value.trim();
@@ -594,6 +653,7 @@
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ "query": message }));
+                showTypingIndicator(); // Punkte anzeigen, sobald die Nachricht abgeschickt wurde!
             } else {
                 console.error("WebSocket is not connected. Cannot send message.");
                 appendMessage('bot', '*Verbindung getrennt. Bitte laden Sie die Seite neu.*', current_indx + 1);
