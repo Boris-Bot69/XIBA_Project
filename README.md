@@ -1,10 +1,12 @@
-# 🤖 XIBA: The AI-Powered Customer Onboarding Agent
+# XIBA: The AI-Powered Customer Onboarding Agent
 
 XIBA is a **FastAPI-powered, ReAct agent** that serves as the primary point of contact for customer onboarding. It's designed to guide users seamlessly from their first interaction all the way to booking an appointment with the perfect specialist.
 
+## Demo: https://xiba-project.onrender.com/
+
 ---
 
-## 🚀 Key Achievements & Contributions
+## Key Achievements & Contributions
 
 * **Engineered a multi-tool `LangChain` ReAct agent** to handle a complex conversation flow, including customer onboarding, dynamic specialist searches, and real-time appointment booking.
 * **Integrated local `Ollama` embeddings** to intelligently surface relevant case studies, building immediate trust and credibility with potential customers.
@@ -13,8 +15,9 @@ XIBA is a **FastAPI-powered, ReAct agent** that serves as the primary point of c
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 * **Backend:** `Python`, `FastAPI` (REST/WebSocket)
 * **AI/ML:** `OpenAI`, `LangChain`, `Ollama`
 * **Database:** `Redis`
+
