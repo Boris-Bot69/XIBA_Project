@@ -19,3 +19,9 @@ logs/
 # Data files that may contain personal info (optional - remove if you want to track these)
 # data/customer_profiles.csv
 # data/appointments.csv
+
+# Interview prep (local only)
+XIBA_Interview_Vorbereitung.docx
+XIBA_Interview_Vorbereitung.pdf
+create_interview_doc.py
+create_interview_pdf.py
