@@ -25,6 +25,19 @@ conversation_mgr = ConversationManager()
 redis_client = get_redis_instance()
 
 
+_MAX_503_RETRIES = 3
+_503_RETRY_DELAYS = [2, 4, 8]  # seconds
+
+
+def _is_503_error(e: Exception) -> bool:
+    """Return True if the exception is a transient 503 Service Unavailable from the upstream API."""
+    err = str(e)
+    return (
+        "503" in err
+        or "service unavailable" in err.lower()
+        or ("unavailable" in err.lower() and "high demand" in err.lower())
+    )
+
 
 async def _process_graph_stream(
     thread_id: str, user_id: str, initial_state: Dict[str, Any], config: RunnableConfig
@@ -56,175 +69,226 @@ async def _process_graph_stream(
     try:
         logger.info(f"Starting unified event stream for thread {thread_id} with config: {event_stream_config}")
 
-        # Stream events from the graph
-        async for event in planner_graph.astream_events(initial_state, config=event_stream_config, version="v2", **stream_kwargs):
-            event_type = event.get("event")
-            event_data = event.get("data", {})
-            event_name = event.get("name", "")  # Often the node name
-            run_id = event.get("run_id")  # Useful for tracking
-            tags = event.get("tags", [])  # Can contain tool names etc.
-            logger.info( f"Event received: type={event_type}, name={event_name}, run_id={run_id}")
-            # Skip certain events if needed           
-            if event_name == "ChatGoogleGenerativeAI":
-                continue
-            # logger.debug(f"Event data keys: {list(event_data.keys()) if isinstance(event_data, dict) else 'N/A'}")
-            # print("\n\n>>>Stream event: %s" % safe_jsondumps(_ensure_serializable(event), indent=2))
-            # --- 1. Token Streaming Logic ---
-            # Look for chunks from the language model stream
-            # Check both 'on_chat_model_stream' and 'on_llm_stream' for compatibility
-            if event_type in ["on_chat_model_stream", "on_llm_stream"]:
-                chunk = event_data.get("chunk")
-                if chunk:
-                    # Extract content based on expected chunk structure (e.g., AIMessageChunk)
-                    content_piece = None
-                    if hasattr(chunk, 'content'):
-                        content_piece = chunk.content
-                    elif isinstance(chunk, str):  # Simpler LLM might just yield strings
-                        content_piece = chunk
+        # Retry loop: retries up to _MAX_503_RETRIES times on transient 503 errors
+        _503_attempt = 0
+        _stream_done = False
+        while not _stream_done:
+            try:
+                # Stream events from the graph
+                async for event in planner_graph.astream_events(initial_state, config=event_stream_config, version="v2", **stream_kwargs):
+                    event_type = event.get("event")
+                    event_data = event.get("data", {})
+                    event_name = event.get("name", "")  # Often the node name
+                    run_id = event.get("run_id")  # Useful for tracking
+                    tags = event.get("tags", [])  # Can contain tool names etc.
+                    logger.info(f"Event received: type={event_type}, name={event_name}, run_id={run_id}")
+                    # Skip certain events if needed
+                    if event_name == "ChatGoogleGenerativeAI":
+                        continue
+                    # logger.debug(f"Event data keys: {list(event_data.keys()) if isinstance(event_data, dict) else 'N/A'}")
+                    # print("\n\n>>>Stream event: %s" % safe_jsondumps(_ensure_serializable(event), indent=2))
+                    # --- 1. Token Streaming Logic ---
+                    # Look for chunks from the language model stream
+                    # Check both 'on_chat_model_stream' and 'on_llm_stream' for compatibility
+                    if event_type in ["on_chat_model_stream", "on_llm_stream"]:
+                        chunk = event_data.get("chunk")
+                        if chunk:
+                            # Extract content based on expected chunk structure (e.g., AIMessageChunk)
+                            content_piece = None
+                            if hasattr(chunk, 'content'):
+                                content_piece = chunk.content
+                            elif isinstance(chunk, str):  # Simpler LLM might just yield strings
+                                content_piece = chunk
 
-                    if content_piece:
-                        # Start streaming if this is the first token
-                        if not is_streaming_tokens:
-                            is_streaming_tokens = True
-                            current_message_tokens = []
+                            if content_piece:
+                                # Start streaming if this is the first token
+                                if not is_streaming_tokens:
+                                    is_streaming_tokens = True
+                                    current_message_tokens = []
+                                    await ws_manager.send_message(
+                                        thread_id,
+                                        {"type": "msg_stream_start", "timestamp": datetime.now().isoformat()}
+                                    )
+                                    logger.info(f"Started token stream for thread {thread_id}")
+                                    last_logged_length = 0  # Track length for progress logging
+                                    log_interval = 100  # Log every 100 characters
+
+                                # Send the token
+                                current_message_tokens.append(content_piece)
+                                latest_full_content = "".join(current_message_tokens)  # Keep track of the full message
+                                await ws_manager.send_message(
+                                    thread_id,
+                                    {
+                                        "type": "msg_stream",
+                                        "message": content_piece,
+                                        "timestamp": datetime.now().isoformat()
+                                    }
+                                )
+                                # Log progress periodically based on length
+                                current_length = len(latest_full_content)
+                                if current_length >= last_logged_length + log_interval:
+                                    logger.debug(f"Streaming progress: ~{current_length} characters...")
+                                    last_logged_length = current_length
+                                # logger.debug(f"Sent token: '{content_piece}'") # Removed log-per-token
+
+                    # --- 2. Structured Response & Final Message Logic ---
+                    # Often the final AI response comes in on_chain_end or node_end events data
+                    # Specifically look at the end of the main planner node if applicable
+                    # Or check for specific keys like 'final_output' or 'structured_response' if your graph sets them
+                    if event_type == "on_chain_end" or event_type == "on_node_end":
+                        # Check if the event data contains the final message(s)
+                        output = event_data.get("output")  # Output is common place for final result
+                        if output:
+                            # Output structure can vary greatly based on graph/node implementation
+                            # Example: if output is the final state dictionary
+                            if isinstance(output, dict) and "messages" in output:
+                                final_messages = output["messages"]
+                                if final_messages and isinstance(final_messages, list):
+                                    # Get the *last* AI message as the definitive response
+                                    for msg in reversed(final_messages):
+                                        role = None
+                                        content = None
+                                        if isinstance(msg, dict):
+                                            role = msg.get("role")
+                                            content = msg.get("content")
+                                        elif hasattr(msg, "type") and hasattr(msg, "content"):
+                                            role = getattr(msg, "type", None) or getattr(msg, "role", None)
+                                            content = getattr(msg, "content", None)
+
+                                        if (role == "ai" or role == "assistant") and content:
+                                            final_ai_message_content = content
+                                            # Check content is not None before len()
+                                            # content_len = len(final_ai_message_content) if final_ai_message_content is not None else 0
+                                            # logger.info(f"Captured final AI message content (length {content_len}) from event {event_type}")
+                                            break  # Stop after finding the last AI message
+
+                            # Example: Check for a specific structured response key
+                            elif isinstance(output, dict) and "structured_response" in output and not structured_response_sent:
+                                structured_data = _ensure_serializable(output["structured_response"])
+                                await ws_manager.send_message(
+                                    thread_id,
+                                    {
+                                        "type": "structured_response",
+                                        "data": structured_data,
+                                        "timestamp": datetime.now().isoformat(),
+                                    }
+                                )
+                                structured_response_sent = True
+                                logger.info("Sent structured response data to client from event")
+
+                    # --- 3. High-Level Agent Event Logic ---
+                    node_name = event_name  # Use event name as node name by default
+                    display_name = node_name.replace("_", " ").title() if node_name else "Graph"
+                    event_id = f"{event_type}:{node_name}:{run_id}"  # More unique event ID
+
+                    # Avoid sending duplicate status events
+                    if event_id in seen_events:
+                        continue
+
+                    # Map event types to our desired frontend types
+                    normalized_event_type: Optional[str] = None
+                    message: Optional[str] = None
+                    tool_info: Dict[str, Any] = {}
+
+                    # Check event_type is not None before using 'in'
+                    is_tool_event = event_type is not None and ("tool" in event_type or any(tag.startswith("tool:") for tag in tags))
+
+                    if event_type == "on_node_start" and not is_tool_event:
+                        normalized_event_type = "on_node_start"
+                        message = await _format_event_message(normalized_event_type, cast(Dict[str, Any], event_data), node_name, thread_id)
+                    elif event_type == "on_node_end" and not is_tool_event:
+                        normalized_event_type = "on_node_end"
+                        message = await _format_event_message(normalized_event_type, cast(Dict[str, Any], event_data), node_name, thread_id)
+                    elif event_type == "on_tool_start":
+                        normalized_event_type = "on_tool_start"
+                        tool_input = event_data.get("input", {})  # Tool input often here
+                        tool_info["name"] = node_name
+                        input_str = str(tool_input)
+                        tool_info["input"] = input_str[:100] + "..." if len(input_str) > 100 else input_str
+                        message = await _format_event_message(normalized_event_type, cast(Dict[str, Any], event_data), node_name, thread_id)
+                        tools_started.add(node_name)
+                        logger.info(f"Marked tool {node_name} as started")
+                        # Initialize tool data storage
+                        if node_name not in tool_data:
+                            tool_data[node_name] = {"input": tool_input}
+                    elif event_type == "on_tool_end":
+                        normalized_event_type = "on_tool_end"
+                        tool_output = event_data.get("output", {})  # Tool output often here
+                        tool_info["name"] = node_name
+                        output_str = str(tool_output)
+                        tool_info["output"] = output_str[:100] + "..." if len(output_str) > 100 else output_str
+                        message = await _format_event_message(normalized_event_type, cast(Dict[str, Any], event_data), node_name, thread_id)
+                        print("TTTTTTTTTTTTTT EEEEEEEEE DDDDDDDDDDD message >>>", message)
+                        # Store tool output
+                        if node_name in tool_data:
+                            tool_data[node_name]["output"] = tool_output
+                        else:  # Should have started first, but handle defensively
+                            tool_data[node_name] = {"output": tool_output}
+
+                    # logger.info( f"Message ={str(message)}\n")
+                    # Send the formatted agent event if relevant
+                    if normalized_event_type and message:
+                        seen_events.add(event_id)  # Mark as seen only if sending
+                        response = {
+                            "type": "agent_event",
+                            "event_type": normalized_event_type,
+                            "node_name": node_name,
+                            "display_name": display_name,
+                            "message": message,
+                            "timestamp": datetime.now().isoformat(),
+                            "event_order": len(seen_events)
+                        }
+                        if tool_info:
+                            response["tool_info"] = tool_info
+
+                        logger.info(f"Sending agent event: {normalized_event_type} - {message[:50]}...")
+                        await ws_manager.send_message(thread_id, response)
+
+                # Stream finished successfully
+                _stream_done = True
+
+            except asyncio.CancelledError:
+                raise
+
+            except Exception as stream_err:
+                if _is_503_error(stream_err) and _503_attempt < _MAX_503_RETRIES:
+                    _503_attempt += 1
+                    delay = _503_RETRY_DELAYS[_503_attempt - 1]
+                    logger.warning(
+                        f"503 Service Unavailable on attempt {_503_attempt} for thread {thread_id}. "
+                        f"Retrying in {delay}s..."
+                    )
+
+                    # Close any in-progress token stream on the client before retrying
+                    if is_streaming_tokens:
+                        try:
                             await ws_manager.send_message(
                                 thread_id,
-                                {"type": "msg_stream_start", "timestamp": datetime.now().isoformat()}
+                                {"type": "msg_stream_end", "timestamp": datetime.now().isoformat()}
                             )
-                            logger.info(f"Started token stream for thread {thread_id}")
-                            last_logged_length = 0  # Track length for progress logging
-                            log_interval = 100  # Log every 100 characters
+                        except Exception:
+                            pass
+                        is_streaming_tokens = False
+                        current_message_tokens = []
+                        latest_full_content = ""
+                        final_ai_message_content = None
+                        seen_events = set()
+                        sent_tool_results = set()
+                        tools_started = set()
+                        tool_data = {}
+                        structured_response_sent = False
 
-                        # Send the token
-                        current_message_tokens.append(content_piece)
-                        latest_full_content = "".join(current_message_tokens)  # Keep track of the full message
-                        await ws_manager.send_message(
-                            thread_id,
-                            {
-                                "type": "msg_stream",
-                                "message": content_piece,
-                                "timestamp": datetime.now().isoformat()
-                            }
-                        )
-                        # Log progress periodically based on length
-                        current_length = len(latest_full_content)
-                        if current_length >= last_logged_length + log_interval:
-                            logger.debug(f"Streaming progress: ~{current_length} characters...")
-                            last_logged_length = current_length
-                        # logger.debug(f"Sent token: '{content_piece}'") # Removed log-per-token
-
-            # --- 2. Structured Response & Final Message Logic ---
-            # Often the final AI response comes in on_chain_end or node_end events data
-            # Specifically look at the end of the main planner node if applicable
-            # Or check for specific keys like 'final_output' or 'structured_response' if your graph sets them
-            if event_type == "on_chain_end" or event_type == "on_node_end":
-                # Check if the event data contains the final message(s)
-                output = event_data.get("output")  # Output is common place for final result
-                if output:
-                    # Output structure can vary greatly based on graph/node implementation
-                    # Example: if output is the final state dictionary
-                    if isinstance(output, dict) and "messages" in output:
-                        final_messages = output["messages"]
-                        if final_messages and isinstance(final_messages, list):
-                            # Get the *last* AI message as the definitive response
-                            for msg in reversed(final_messages):
-                                role = None
-                                content = None
-                                if isinstance(msg, dict):
-                                    role = msg.get("role")
-                                    content = msg.get("content")
-                                elif hasattr(msg, "type") and hasattr(msg, "content"):
-                                    role = getattr(msg, "type", None) or getattr(msg, "role", None)
-                                    content = getattr(msg, "content", None)
-
-                                if (role == "ai" or role == "assistant") and content:
-                                    final_ai_message_content = content
-                                    # Check content is not None before len()
-                                    # content_len = len(final_ai_message_content) if final_ai_message_content is not None else 0
-                                    # logger.info(f"Captured final AI message content (length {content_len}) from event {event_type}")
-                                    break  # Stop after finding the last AI message
-
-                    # Example: Check for a specific structured response key
-                    elif isinstance(output, dict) and "structured_response" in output and not structured_response_sent:
-                        structured_data = _ensure_serializable(output["structured_response"])
-                        await ws_manager.send_message(
-                            thread_id,
-                            {
-                                "type": "structured_response",
-                                "data": structured_data,
-                                "timestamp": datetime.now().isoformat(),
-                            }
-                        )
-                        structured_response_sent = True
-                        logger.info("Sent structured response data to client from event")
-
-            # --- 3. High-Level Agent Event Logic ---
-            node_name = event_name  # Use event name as node name by default
-            display_name = node_name.replace("_", " ").title() if node_name else "Graph"
-            event_id = f"{event_type}:{node_name}:{run_id}"  # More unique event ID
-
-            # Avoid sending duplicate status events
-            if event_id in seen_events:
-                continue
-
-            # Map event types to our desired frontend types
-            normalized_event_type: Optional[str] = None
-            message: Optional[str] = None
-            tool_info: Dict[str, Any] = {}
-
-            # Check event_type is not None before using 'in'
-            is_tool_event = event_type is not None and ("tool" in event_type or any(tag.startswith("tool:") for tag in tags))
-
-            if event_type == "on_node_start" and not is_tool_event:
-                normalized_event_type = "on_node_start"
-                message = await _format_event_message(normalized_event_type, cast(Dict[str, Any], event_data), node_name, thread_id)
-            elif event_type == "on_node_end" and not is_tool_event:
-                normalized_event_type = "on_node_end"
-                message = await _format_event_message(normalized_event_type, cast(Dict[str, Any], event_data), node_name, thread_id)
-            elif event_type == "on_tool_start":
-                normalized_event_type = "on_tool_start"
-                tool_input = event_data.get("input", {})  # Tool input often here
-                tool_info["name"] = node_name
-                input_str = str(tool_input)
-                tool_info["input"] = input_str[:100] + "..." if len(input_str) > 100 else input_str
-                message = await _format_event_message(normalized_event_type, cast(Dict[str, Any], event_data), node_name, thread_id)
-                tools_started.add(node_name)
-                logger.info(f"Marked tool {node_name} as started")
-                # Initialize tool data storage
-                if node_name not in tool_data:
-                    tool_data[node_name] = {"input": tool_input}
-            elif event_type == "on_tool_end":
-                normalized_event_type = "on_tool_end"
-                tool_output = event_data.get("output", {})  # Tool output often here
-                tool_info["name"] = node_name
-                output_str = str(tool_output)
-                tool_info["output"] = output_str[:100] + "..." if len(output_str) > 100 else output_str
-                message = await _format_event_message(normalized_event_type, cast(Dict[str, Any], event_data), node_name, thread_id)
-                print ("TTTTTTTTTTTTTT EEEEEEEEE DDDDDDDDDDD message >>>", message)
-                # Store tool output
-                if node_name in tool_data:
-                    tool_data[node_name]["output"] = tool_output
-                else:  # Should have started first, but handle defensively
-                    tool_data[node_name] = {"output": tool_output}
-
-            # logger.info( f"Message ={str(message)}\n")
-            # Send the formatted agent event if relevant
-            if normalized_event_type and message:
-                seen_events.add(event_id)  # Mark as seen only if sending
-                response = {
-                    "type": "agent_event",
-                    "event_type": normalized_event_type,
-                    "node_name": node_name,
-                    "display_name": display_name,
-                    "message": message,
-                    "timestamp": datetime.now().isoformat(),
-                    "event_order": len(seen_events)
-                }
-                if tool_info:
-                    response["tool_info"] = tool_info
-
-                logger.info(f"Sending agent event: {normalized_event_type} - {message[:50]}...")
-                await ws_manager.send_message(thread_id, response)
+                    await ws_manager.send_message(
+                        thread_id,
+                        {
+                            "type": "processing",
+                            "message": f"The AI service is temporarily busy. Retrying ({_503_attempt}/{_MAX_503_RETRIES})...",
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    raise  # Not a 503 error, or retries exhausted — propagate to outer handler
 
         # --- Stream Processing Finished ---
         logger.info(f"Graph event stream finished for thread {thread_id}")
@@ -250,7 +314,7 @@ async def _process_graph_stream(
                 current_thread_name = session.get("thread_name", "New Conversation")
                 current_time = datetime.now()
                 message_id = str(uuid4())
-                
+
                 flight_cards = [] # self.generate_flight_cards()
                 hotel_cards = [] # self.generate_hotel_cards()
 
@@ -265,7 +329,7 @@ async def _process_graph_stream(
                 })
 
                 logger.info(f"Saved final AI message to DB for thread {thread_id}")
-                
+
                 # --- Thread Naming Logic (Phase 3) ---
                 # Check if this thread still has the default name
                 if current_thread_name == "New Conversation":
@@ -278,7 +342,7 @@ async def _process_graph_stream(
                             if msg.get("role") == "human":
                                 user_message = msg.get("content", "")
                                 break
-                        
+
                         if user_message and final_content_to_save:
                             logger.info(f"Generating name for thread {thread_id} - User message: {user_message[:30]}...")
                             # Generate a thread name based on the conversation
@@ -286,7 +350,7 @@ async def _process_graph_stream(
                                 user_message=user_message,
                                 ai_message=final_content_to_save
                             )
-                            
+
                             # Update thread name in storage system
                             if generated_name != "New Conversation" and generated_name.strip():
                                 # Update in thread-based storage
@@ -294,12 +358,12 @@ async def _process_graph_stream(
                                     thread_id=thread_id,
                                     new_name=generated_name
                                 )
-                                
+
                                 if thread_updated:
                                     # Update the session's thread name
                                     session["thread_name"] = generated_name
                                     logger.info(f"Thread {thread_id} renamed to: {generated_name}")
-                                    
+
                                     # Send thread name update to client
                                     await ws_manager.send_message(
                                         thread_id,
@@ -329,7 +393,7 @@ async def _process_graph_stream(
                         "timestamp": current_time.isoformat()
                     }
                     conversation_mgr.add_message(thread_id, ai_message)  # Also add to in-memory history
-                        
+
                     logger.info(f"Added AI message to session. Session now has {len(session['messages'])} messages")
                 elif not any(msg.get("role") == "ai" for msg in session["messages"][1:]):  # Check if *any* AI response was added after the first user msg
                     fallback_response = "I'm sorry, I wasn't able to generate a response. How else can I help you with your travel plans?"
@@ -345,7 +409,7 @@ async def _process_graph_stream(
                         "agent": "planner",
                         "timestamp": datetime.now().isoformat(),
                     }
-                                            
+
                     await ws_manager.send_message(
                         thread_id,
                         response_message
@@ -365,7 +429,7 @@ async def _process_graph_stream(
                 "timestamp": datetime.now().isoformat(),
             }
         )
-        
+
     except asyncio.CancelledError:
         logger.info(f"Thread processing task cancelled for {thread_id}")
         # Send token stream end if cancelled mid-stream
@@ -413,7 +477,7 @@ async def _process_graph_stream(
                         "agent": "planner",
                         "timestamp": datetime.now().isoformat(),
                     }
-                    
+
                     await ws_manager.send_message(
                         thread_id,
                         fallback_message
@@ -450,7 +514,7 @@ async def _format_event_message(event_type: str, event_data: Dict[str, Any], nod
     Maps key LangGraph events to user-facing messages for the Thread agent.
     (Retained from original implementation)
     """
-    print ("\nevent_type>>>%s<<< " % event_type, "node_name>>>%s<<<" % node_name)
+    print("\nevent_type>>>%s<<< " % event_type, "node_name>>>%s<<<" % node_name)
     if not node_name:
         # Use default message for generic graph start/end if node name is missing
         if event_type == "on_node_start":
@@ -463,7 +527,7 @@ async def _format_event_message(event_type: str, event_data: Dict[str, Any], nod
 
         # store in redis
         try:
-            print ("\\nevent_data >>> ", thread_id, event_data)
+            print("\\nevent_data >>> ", thread_id, event_data)
             messages_for_graph = conversation_mgr.get_history(thread_id)
             all_messages = _ensure_serializable(messages_for_graph)
             # print ("all_messages >>> ", all_messages)
@@ -475,10 +539,10 @@ async def _format_event_message(event_type: str, event_data: Dict[str, Any], nod
                 summary["thread_id"] = thread_id
                 redis_client.hset(f"leads_generated", summary.get("customer_company_name_with_appointment_datetime_with_specialist_name", thread_id), json.dumps(summary))
 
-            print ("summary >>>> ", summary)
+            print("summary >>>> ", summary)
             redis_client.set(f"conversation:thread:{thread_id}", safe_jsondumps({"messages": _ensure_serializable(messages_for_graph)}))
         except Exception as e:
-            print (f"Error saving conversation to Redis for thread: {e}")
+            print(f"Error saving conversation to Redis for thread: {e}")
             logger.error(f"Redis Save Error Traceback: {traceback.format_exc()}")
 
     node_lower = node_name.lower()
@@ -514,12 +578,12 @@ async def _format_event_message(event_type: str, event_data: Dict[str, Any], nod
             return "Checking Appointment"
         elif node_lower == "book_appointment":
             return "Booking Appointment"
-        
+
 
     # --- Tool End Events ---
     elif event_type == "on_tool_end":
         # Tool ends are often less informative for the user unless there's an error
-            
+
         return None
 
     # --- Node End Events ---
@@ -545,7 +609,7 @@ async def handle(thread_id: str, user_id: str, user_input: Any):
             user_query = user_input.strip()
         else:
             user_query = ""
-        print ("user_query >>" , user_query)
+        print("user_query >>", user_query)
         session = conversation_mgr.get_session(thread_id)
         if user_query:
             # Get agent response
@@ -624,9 +688,9 @@ async def handle(thread_id: str, user_id: str, user_input: Any):
             #     print("\tChunk sent, ret:", ret)
             # await ws_manager.send_message(thread_id, {"type": "msg_stream_end"})
     except WebSocketDisconnect:
-        print(f"WebSocket disconnected: chat/{thread_id}")  
+        print(f"WebSocket disconnected: chat/{thread_id}")
         await ws_manager.disconnect(thread_id)
-    except Exception as e:      
+    except Exception as e:
         print(f"Error in chat handler: {str(e)}")
         await ws_manager.send_message(thread_id, {
             "type": "error",
